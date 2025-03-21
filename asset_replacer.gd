@@ -172,18 +172,18 @@ func delete_files():
 	
 	for file in files_to_delete:
 		if dir.remove(file) == OK:
-			utils.console_print("Deleted " + file, Color.DARK_SLATE_BLUE)
-		else: utils.console_print("Failed to delete " + file, Color.DARK_GOLDENROD)
+			utils.console_print("Deleted \"%s\"" %file, Color.DARK_SLATE_BLUE)
+		else: utils.console_print("Failed to delete  \"%s\"" %file, Color.DARK_GOLDENROD)
 		
 		if dir.file_exists(file + ".import"):
 			if dir.remove(file + ".import") == OK:
-				utils.console_print("Deleted " + file + ".import", Color.DARK_SLATE_BLUE)
-			else: utils.console_print("Failed to delete " + file, Color.DARK_GOLDENROD)
+				utils.console_print("Deleted \"%s.import\"" %file, Color.DARK_SLATE_BLUE)
+			else: utils.console_print("Failed to delete \"%s.import\"" %file, Color.DARK_GOLDENROD)
 			
 		if dir.file_exists(file + ".uid"):
 			if dir.remove(file + ".uid") == OK:
-				utils.console_print("Deleted " + file + ".uid", Color.DARK_SLATE_BLUE)
-			else: utils.console_print("Failed to delete " + file, Color.DARK_GOLDENROD)
+				utils.console_print("Deleted \"%s.uid\"" %file, Color.DARK_SLATE_BLUE)
+			else: utils.console_print("Failed to delete \"%s.uid\"" %file, Color.DARK_GOLDENROD)
 		
 
 func export_log():
@@ -192,9 +192,9 @@ func export_log():
 	var file : FileAccess
 	file = FileAccess.open(save_path, FileAccess.WRITE)
 	if !file:
-		utils.console_print("Failed to overwrite log file " + save_path, Color.DARK_RED)
+		utils.console_print("Failed to overwrite log file  \"%s\"" %save_path, Color.DARK_RED)
 		return
 	file.store_string(content)
 	file.close()
 	DirAccess.make_dir_absolute(save_path)
-	utils.console_print("Log file saved at " + OS.get_user_data_dir() + "/" + save_path.trim_prefix("user://"), Color.DARK_GREEN)
+	utils.console_print("Log file saved at \"%s\"" %[OS.get_user_data_dir() + "/" + save_path.trim_prefix("user://")], Color.DARK_GREEN)
