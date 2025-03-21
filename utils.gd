@@ -30,7 +30,7 @@ func get_type_files(path: String, atlas_path : String, file_ext := "", files : A
 
 
 func find_dups(files : PackedStringArray, what : String = "file"):
-	console_print("Searching for duplicate %s names" %what)
+	console_print("Searching for duplicate \"%s\" names" %what)
 	var file_names = []
 	for f in files:
 		file_names.append(f.get_file())
@@ -52,7 +52,7 @@ func find_dups(files : PackedStringArray, what : String = "file"):
 			n = n + 1
 		if n >= file_names.size():
 			break
-	console_print("Searching for duplicate %s names completed. Found %d duplicates" %[what, dups])
+	console_print("Searching for duplicate \"%s\" names completed. Found %d duplicates" %[what, dups])
 	return files
 
 
