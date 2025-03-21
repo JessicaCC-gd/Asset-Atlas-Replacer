@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
 
-var scene: Node = preload("res://addons/asset_replacer/asset_replacer.tscn").instantiate()
+var scene: Node = preload("res://addons/asset_atlas_replacer/asset_replacer.tscn").instantiate()
 
 
 const text_types : PackedStringArray = ["tscn", "tres", "gd"]
