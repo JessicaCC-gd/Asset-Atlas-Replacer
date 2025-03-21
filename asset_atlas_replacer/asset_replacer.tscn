@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cgg1n8aced4na"]
 
-[ext_resource type="Script" path="res://addons/asset_replacer/utils.gd" id="1_5ltyd"]
+[ext_resource type="Script" path="res://addons/asset_atlas_replacer/utils.gd" id="1_5ltyd"]
 
 [node name="asset_replacer" type="MarginContainer"]
 anchors_preset = 15
