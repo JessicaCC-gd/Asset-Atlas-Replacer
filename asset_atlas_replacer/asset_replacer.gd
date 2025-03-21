@@ -5,7 +5,7 @@ var scene: Node = preload("res://addons/asset_atlas_replacer/asset_replacer.tscn
 
 
 const text_types : PackedStringArray = ["tscn", "tres", "gd"]
-const img_types : PackedStringArray = ["svg", "png", "jpg", "jpeg", "webp", "bmp", "tres"]
+const img_types : PackedStringArray = ["svg", "png", "jpg", "jpeg", "webp", "bmp"]
 const atlas_types : PackedStringArray = ["tres", "res"]
 
 var button : Button
@@ -16,10 +16,8 @@ var export_button : CheckButton
 var utils : Node
 
 var img_files : PackedStringArray = []
-var img_data : Array[Resource] = []
 var text_files : PackedStringArray = []
 var atlas_files : PackedStringArray = []
-var atlas_data : Array = []
 var files_to_delete : PackedStringArray = []
 
 var godot_version : float
@@ -73,10 +71,8 @@ func start_replacing():
 func reset():
 	utils.clear_console()
 	img_files = []
-	img_data = []
 	text_files = []
 	atlas_files = []
-	atlas_data = []
 	files_to_delete = []
 
 func get_files():
@@ -102,59 +98,50 @@ func get_images():
 	for img_type in img_types:
 		img_files = utils.get_type_files("res://", atlas_path, img_type, img_files)
 	utils.console_print("Search for image files completed. Found %d files" %img_files.size())
-	utils.console_print("Loading data from images")
-	img_data = load_files_resources(img_files)
-	utils.console_print("Loading data from images completed")
-	
-	var temp = utils.find_dups(img_files, img_data)
-	img_files = temp[0]
-	img_data = temp[1]
+	img_files = utils.find_dups(img_files, "image")
 
 
 func get_atlas_res():
 	utils.console_print("Searching for AtlasTexture files")
 	for type in atlas_types:
-		atlas_files = utils.get_type_files(atlas_path, type, atlas_files)
+		atlas_files = utils.get_type_files(atlas_path, atlas_path, type, atlas_files)
 	utils.console_print("Search for AtlasTexture files completed. Found %d files" % atlas_files.size())
-	utils.console_print("Loading data from atlas files")
-	atlas_data = load_files_resources(atlas_files)
-	utils.console_print("Loading data from atlas files completed")
-	var temp = utils.find_dups(atlas_files, atlas_data)
-	atlas_files = temp[0]
-	atlas_data = temp[1]
+	if atlas_files.size() > 1:
+		atlas_files = utils.find_dups(atlas_files, "atlas file")
 
-
-func load_files_resources(files : PackedStringArray):
-	var data : Array[Resource] = []
-	for file in files:
-		var res : Resource = ResourceLoader.load(file)
-		data.append(res)
-	return data
 
 func find_matches():
 	utils.console_print("Searching for image and atlas file matches")
 	var matches := 0
-	for res : AtlasTexture in atlas_data:
+	for a in atlas_files.size():
+		var atlas_name =  atlas_files[a].get_file().trim_suffix("." + atlas_files[a].get_extension())
 		var found_match := false
 		for i in img_files.size():
 			var img_name =  img_files[i].get_file().trim_suffix("." + img_files[i].get_extension())
-			if res.resource_name == img_name:
-				var img = img_data[i]
-				if compare_button.button_pressed:
-					if Vector2i(img.get_size()) != Vector2i(res.get_size()):
-						utils.console_print("Found name matches, but dimentions didn't match. File \"%s\" not replaced" %img_files[i].get_file(), Color.DARK_GOLDENROD)
-						break
+			if atlas_name == img_name:
+				if size_compare(img_files[i], atlas_files[a]) != OK: return 1
 				matches += 1
-				replace(img, res)
+				replace(img_files[i], atlas_files[a])
 				found_match = true
 				break
 		if !found_match:
-			utils.console_print("Didn't find a match for AtlasTexture \"%s\"" % res.resource_path, Color.DARK_RED)
+			utils.console_print("Didn't find a match for AtlasTexture \"%s\"" %atlas_files[a], Color.DARK_RED)
 	utils.console_print("Search for image and atlas file matches completed. Matched %d pairs" %matches)
 
 
-func replace(before : Resource, after : AtlasTexture):
+func size_compare(img_path : String, res_path : String):
+	if compare_button.button_pressed:
+		var img_file = ResourceLoader.load(img_path)
+		var res_file := ResourceLoader.load(res_path)
+		if img_file.get_size() != res_file.get_size():
+			utils.console_print("Found name matches, but dimentions didn't match. File \"%s\" not replaced" %res_path, Color.DARK_RED)
+			return 1
+	return OK
+
+func replace(before : String, after : String):
 	var edited_files : PackedStringArray = []
+	var b_uid = ResourceUID.id_to_text(ResourceLoader.get_resource_uid(before))
+	var a_uid = ResourceUID.id_to_text(ResourceLoader.get_resource_uid(after))
 	for text_file in text_files:
 		var file := FileAccess.open(text_file, FileAccess.READ)
 		if !file:
@@ -162,12 +149,10 @@ func replace(before : Resource, after : AtlasTexture):
 			continue
 		var content = file.get_as_text()
 		var edits := 0
-		if content.contains(before.resource_path):
-			content = content.replace(before.resource_path, after.resource_path)
+		if content.contains(before):
+			content = content.replace(before, after)
 			edits += 1
-		var b_uid = ResourceUID.id_to_text(ResourceLoader.get_resource_uid(before.resource_path))
 		if content.contains(b_uid):
-			var a_uid = ResourceUID.id_to_text(ResourceLoader.get_resource_uid(after.resource_path))
 			content = content.replace(b_uid, a_uid)
 			edits += 1
 		file.close()
@@ -178,9 +163,9 @@ func replace(before : Resource, after : AtlasTexture):
 			edited_files.append(text_file)
 	
 	if edited_files:
-		utils.console_print("Replaced \"%s\" in the following files: %s" %[before.resource_path, edited_files])
+		utils.console_print("Replaced \"%s\" in the following files: %s" %[before, edited_files])
 	if delete_button.button_pressed:
-		files_to_delete.append(before.resource_path)
+		files_to_delete.append(before)
 
 func delete_files():
 	var dir = DirAccess.open("res://")
